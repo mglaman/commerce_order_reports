@@ -8,3 +8,118 @@
  * to the Drupal Commerce system.
  */
 
+/**
+ * Implements hook_entity_info().
+ */
+function commerce_order_reports_entity_info() {
+  return array(
+    'commerce_order_reports' => array(
+      'label' => t('Order Report Entry'),
+      'controller class' => 'CommerceOrderReportsEntityController',
+      'base table' => 'commerce_order_reports',
+      'load hook' => 'commerce_order_reports_load',
+      'label callback' => 'commerce_order_reports_label',
+      'fieldable' => TRUE,
+      'entity keys' => array(
+        'id' => 'order_id',
+      ),
+    ),
+  );
+}
+
+/**
+ * Returns an initialized order object.
+ *
+ * @param $uid
+ *   The uid of the owner of the order.
+ * @param $status
+ *   Optionally the order status of the new order.
+ * @param $type
+ *   The type of the order; defaults to the standard 'order' type.
+ *
+ * @return
+ *   An order object with all default fields initialized.
+ */
+function commerce_order_reports_new($order_id, $order_number, $uid = 0) {
+  if(!$order_id || !$order_number) return;
+
+  return entity_get_controller('commerce_order_reports')->create(array(
+    'order_id' => $order_id,
+    'order_number' => $order_number,
+    'uid' => $uid,
+    'type' => 'commerce_order_reports',
+  ));
+}
+
+/**
+ * Saves an order.
+ *
+ * @param $order
+ *   The full order object to save. If $order->order_id is empty, a new order
+ *     will be created.
+ *
+ * @return
+ *   SAVED_NEW or SAVED_UPDATED depending on the operation performed.
+ */
+function commerce_order_reports_save($order) {
+  return entity_get_controller('commerce_order_reports')->save($order);
+}
+
+/**
+ * Loads an order by ID.
+ */
+function commerce_order_reports_load($order_id) {
+  $orders = commerce_order_reports_load_multiple(array($order_id), array());
+  return $orders ? reset($orders) : FALSE;
+}
+
+/**
+ * Loads an order by number.
+ */
+function commerce_order_reports_load_by_number($order_number) {
+  $orders = commerce_order_reports_load_multiple(array(), array('order_number' => $order_number));
+  return $orders ? reset($orders) : FALSE;
+}
+
+/**
+ * Loads multiple orders by ID or based on a set of matching conditions.
+ *
+ * @see entity_load()
+ *
+ * @param $order_ids
+ *   An array of order IDs.
+ * @param $conditions
+ *   An array of conditions to filter loaded orders by on the {commerce_order}
+ *   table in the form 'field' => $value. Specifying a revision_id will load the
+ *   requested revision of the order identified either by a similar condition or
+ *   the $order_ids array assuming the revision_id is valid for the order_id.
+ * @param $reset
+ *   Whether to reset the internal order loading cache.
+ *
+ * @return
+ *   An array of order objects indexed by order_id.
+ */
+function commerce_order_reports_load_multiple($order_ids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('commerce_order_reports', $order_ids, $conditions, $reset);
+}
+
+/**
+ * Rules Action function to create new Commerce Order Reports entity,
+ *  returns entity wrapper in case user wishes further data sets.
+ * @param  commerce_order $commerce_order
+ * @return entity_wrapper
+ */
+function commerce_order_report_add_entry($commerce_order) {
+  if(!isset($commerce_order->order_id)) return;
+  //Grab data from Commerce Order
+  $order_id = $commerce_order->order_id;
+  $order_number = $commerce_order->order_number;
+  $order_uid = $commerce_order->uid;
+
+  //Create new entity
+  $order_report_entity = commerce_order_reports_new($order_id, $order_number, $order_uid);
+
+  $entity_wrapper = entity_metadata_wrapper('commerce_order_reports', $order_report_entity);
+  $entity_wrapper->save();
+  return $entity_wrapper;
+}

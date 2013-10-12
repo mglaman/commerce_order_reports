@@ -8,31 +8,19 @@
 /**
  * Implements hook_default_rules_configuration().
  */
-function commerce_gift_card_default_rules_configuration() {
+function commerce_order_reports_default_rules_configuration() {
   $configs = array();
-  $rule = '{ "rules_commerce_order_report_set_checkout_tmestamp" : {
-    "LABEL" : "Commerce Order Report: Set checkout tmestamp",
+  $rule = '{ "rules_commerce_order_report_create_report_record" : {
+    "LABEL" : "Commerce Order Report: create report record",
     "PLUGIN" : "reaction rule",
-    "TAGS" : [ "commerce order report" ],
-    "REQUIRES" : [ "rules", "commerce_checkout" ],
-    "ON" : [ "commerce_checkout_complete" ],
-    "IF" : [
-      { "entity_has_field" : {
-          "entity" : [ "commerce-order" ],
-          "field" : "commerce_order_reports_checkout"
-        }
-      }
-    ],
+    "TAGS" : [ "Commerce Order Report" ],
+    "REQUIRES" : [ "commerce_order_reports", "commerce_checkout", "entity" ],
+    "ON" : [ "commerce_checkout_complete", "commerce_order_update" ],
     "DO" : [
-      { "data_set" : {
-          "data" : [ "commerce-order:commerce-order-reports-checkout" ],
-          "value" : "now"
-        }
-      },
-      { "entity_save" : { "data" : [ "commerce-order" ], "immediate" : 1 } }
+      { "commerce_order_report_add_entry" : { "commerce_order" : [ "commerce_order" ] } }
     ]
   }
 }';
-  $configs['rules_commerce_order_report_set_checkout_tmestamp'] = rules_import($rule);
+  $configs['rules_commerce_order_report_create_report_record'] = rules_import($rule);
   return $configs;
 }

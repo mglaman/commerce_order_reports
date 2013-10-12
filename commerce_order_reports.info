@@ -8,3 +8,6 @@ core = 7.x
 
 ; Views includes
 files[] = includes/views/commerce_order_reports.views.inc
+
+; Module includes
+files[] = includes/commerce_order_reports.controller.inc
