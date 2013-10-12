@@ -131,7 +131,8 @@ function commerce_order_reports_daily_report_header($view) {
       <tr>
         <th>Number of Orders</th>
         <th>Number of Products</th>
-        <th>Gross Total</th>
+        <th>Average Order</th>
+        <th>Gross</th>
         <th>Revenue</th>
         <th>Taxes</th>
         <th>Shipping</th>
@@ -169,8 +170,11 @@ function commerce_order_reports_daily_report_header($view) {
     $overall_shipping = $overall_shipping + commerce_order_reports_order_shipping_total($commerce_order);
   }
 
+  $average_order_total = ($gross_total > 0) ? $gross_total / count($view->result) : 0;
+
   //Format currency variables
   $gross_total = commerce_currency_format($gross_total, commerce_default_currency());
+  $average_order_total = commerce_currency_format($average_order_total, commerce_default_currency());
   $overall_subtotal = commerce_currency_format($overall_subtotal, commerce_default_currency());
   $overall_taxes = commerce_currency_format($overall_taxes, commerce_default_currency());
   $overall_shipping = commerce_currency_format($overall_shipping, commerce_default_currency());
@@ -180,6 +184,7 @@ function commerce_order_reports_daily_report_header($view) {
       <tr>
         <td>' . count($view->result) . '</td>
         <td>' . $total_products . '</td>
+        <td>' . $average_order_total . '
         <td>' . $gross_total . '</td>
         <td>' . $overall_subtotal . '</td>
         <td>' . $overall_taxes . '</td>
