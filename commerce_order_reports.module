@@ -104,6 +104,95 @@ function commerce_order_reports_load_multiple($order_ids = array(), $conditions 
 }
 
 /**
+ * Implements hook_views_api().
+ */
+function commerce_order_reports_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'commerce_order_reports') . '/includes/views',
+  );
+}
+
+/**
+ * Implements hook_views_pre_render().
+ */
+function commerce_order_reports_views_pre_render(&$view) {
+  if ($view->name == 'daily_report') {
+    drupal_add_css(drupal_get_path('module', 'commerce_order_reports') . '/commerce_order_reports.css');
+    $view->attachment_before = commerce_order_reports_daily_report_header($view);
+  }
+}
+
+function commerce_order_reports_daily_report_header($view) {
+
+  $output = '
+  <table class="daily-report-header">
+    <thead>
+      <tr>
+        <th>Number of Orders</th>
+        <th>Number of Products</th>
+        <th>Gross Total</th>
+        <th>Revenue</th>
+        <th>Taxes</th>
+        <th>Shipping</th>
+      </tr>
+    </thead>
+  ';
+  $gross_total = 0;
+  $overall_subtotal = 0;
+  $overall_taxes = 0;
+  $overall_shipping = 0;
+  $total_products = 0;
+
+  foreach($view->result as $orders) {
+
+    //Load Commerce Order object
+    $commerce_order_id = $orders->commerce_order_reports_order_id;
+    $commerce_order = commerce_order_load($commerce_order_id);
+
+    //Load up Commerce Order entity wrapper
+    $commerce_order_wrapper = entity_metadata_wrapper('commerce_order', $commerce_order);
+
+    //Find out number of products sold
+    $order_line_items = $commerce_order_wrapper->commerce_line_items->value();
+    foreach($order_line_items as $line_item) {
+      # @todo: This is too restrictive!
+      if($line_item->type == 'product') {
+        $total_products = $total_products + $line_item->quantity;
+      }
+    }
+
+    //Calculate different price totals
+    $gross_total = $gross_total + $commerce_order_wrapper->commerce_order_total->amount->value();
+    $overall_subtotal = $overall_subtotal + commerce_order_reports_order_base_total($commerce_order);
+    $overall_taxes = $overall_taxes + commerce_order_reports_order_tax_total($commerce_order);
+    $overall_shipping = $overall_shipping + commerce_order_reports_order_shipping_total($commerce_order);
+  }
+
+  //Format currency variables
+  $gross_total = commerce_currency_format($gross_total, commerce_default_currency());
+  $overall_subtotal = commerce_currency_format($overall_subtotal, commerce_default_currency());
+  $overall_taxes = commerce_currency_format($overall_taxes, commerce_default_currency());
+  $overall_shipping = commerce_currency_format($overall_shipping, commerce_default_currency());
+
+  $output .='
+    <tbody>
+      <tr>
+        <td>' . count($view->result) . '</td>
+        <td>' . $total_products . '</td>
+        <td>' . $gross_total . '</td>
+        <td>' . $overall_subtotal . '</td>
+        <td>' . $overall_taxes . '</td>
+        <td>' . $overall_shipping . '</td>
+      </tr>
+    </tbody>
+  </table>
+  ';
+
+  return $output;
+}
+
+/**
  * Rules Action function to create new Commerce Order Reports entity,
  *  returns entity wrapper in case user wishes further data sets.
  * @param  commerce_order $commerce_order
@@ -122,4 +211,86 @@ function commerce_order_report_add_entry($commerce_order) {
   $entity_wrapper = entity_metadata_wrapper('commerce_order_reports', $order_report_entity);
   $entity_wrapper->save();
   return $entity_wrapper;
+}
+
+/**
+ * Gathers tax price components from order and returns unformatted currency amount
+ * @param  commerce_order $commerce_order
+ * @return int
+ */
+function commerce_order_reports_order_tax_total($commerce_order) {
+
+  if(!is_object($commerce_order)) return;
+
+  //Load entity wrapper for commerce order
+  $order_wrapper = entity_metadata_wrapper('commerce_order', $commerce_order);
+
+  //Get the pricing components for the commerce order
+  $order_pricing_data = $order_wrapper->commerce_order_total->data->value();
+  $order_price_components = $order_pricing_data['components'];
+
+  $order_tax = 0;
+
+  foreach($order_price_components as $component) {
+    if(isset($component['price']['data']['tax_rate']) && is_array($component['price']['data']['tax_rate'])) {
+      $order_tax = $order_tax + $component['price']['amount'];
+    }
+  }
+
+  return $order_tax;
+}
+
+/**
+ * Cycles through each line item, except shipping, to calculate order total.
+ * Allows for recognition of discounts.
+ * @param  [type] $commerce_order [description]
+ * @return [type]                 [description]
+ */
+function commerce_order_reports_order_base_total($commerce_order) {
+
+  if(!is_object($commerce_order)) return;
+
+  //Load entity wrapper for commerce order
+  $order_wrapper = entity_metadata_wrapper('commerce_order', $commerce_order);
+
+  //Get the line items attached to the order
+  $order_line_items = $order_wrapper->commerce_line_items->value();
+
+  //Setup order total variable
+  $order_total = 0;
+
+  foreach($order_line_items as $line_item) {
+    //We want to ignore shipping, since we're cataloging that else where.
+    if($line_item->type == 'shipping') continue;
+
+    $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
+
+    $order_total = $order_total + $line_item_wrapper->commerce_total->amount->value();
+  }
+
+  return $order_total;
+}
+
+function commerce_order_reports_order_shipping_total($commerce_order) {
+
+  if(!is_object($commerce_order)) return;
+
+  //Load entity wrapper for commerce order
+  $order_wrapper = entity_metadata_wrapper('commerce_order', $commerce_order);
+
+  //Get the line items attached to the order
+  $order_line_items = $order_wrapper->commerce_line_items->value();
+
+  //Setup order total variable
+  $order_total = 0;
+
+  foreach($order_line_items as $line_item) {
+    //We want to ignore shipping, since we're cataloging that else where.
+    if($line_item->type == 'shipping') {
+      //@todo: Properly load entity wrapper to get value
+      $order_total = $order_total + $line_item->commerce_unit_price['und'][0]['amount'];
+    }
+  }
+
+  return $order_total;
 }

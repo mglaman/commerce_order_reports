@@ -6,8 +6,8 @@ dependencies[] = date
 dependencies[] = date_views
 core = 7.x
 
-; Views includes
-files[] = includes/views/commerce_order_reports.views.inc
-
 ; Module includes
 files[] = includes/commerce_order_reports.controller.inc
+
+; Views includes
+files[] = includes/views/commerce_order_reports.views.inc

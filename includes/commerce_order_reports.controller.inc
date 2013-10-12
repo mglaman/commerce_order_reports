@@ -26,6 +26,10 @@ class CommerceOrderReportsEntityController extends DrupalCommerceEntityControlle
       'order_id' => 0,
       'order_number' => 0,
       'uid' => '',
+      'tax' => 0,
+      'base_total' => 0,
+      'shipping' => 0,
+      'currency_code' => commerce_default_currency(),
       'data' => array(),
       'created' => REQUEST_TIME,
     );
@@ -78,6 +82,13 @@ class CommerceOrderReportsEntityController extends DrupalCommerceEntityControlle
           unset($order->uid);
         }
       }
+
+      //Populate some reporting data
+      $commerce_order = commerce_order_load($order->order_id);
+
+      $order->tax = commerce_order_reports_order_tax_total($commerce_order);
+      $order->base_total = commerce_order_reports_order_base_total($commerce_order);
+      $order->shipping = commerce_order_reports_order_shipping_total($commerce_order);
 
       return parent::save($order, $transaction);
     }

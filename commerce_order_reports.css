@@ -1,0 +1,17 @@
+.commerce-order-reports #edit-date-filter-wrapper label,
+.commerce-order-reports #edit-date-filter-wrapper .views-widget {
+  display: block;
+  float: left;
+}
+.commerce-order-reports #edit-date-filter-wrapper label {
+}
+.commerce-order-reports #edit-date-filter-wrapper .views-widget {
+  margin-left: 15px;
+}
+.commerce-order-reports #edit-date-filter-wrapper .views-widget .date-padding input {
+  background: white url("theme/images/calendar.png") no-repeat 95% center;
+}
+.commerce-order-reports #edit-date-filter-wrapper .description {
+  clear: both;
+  font-size: 13px;
+}

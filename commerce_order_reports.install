@@ -40,6 +40,30 @@ function commerce_order_reports_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
+      'base_total' => array(
+        'description' => 'Base price amount attached to order',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'tax' => array(
+        'description' => 'Tax amount attached to order',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'shipping' => array(
+        'description' => 'Shipping charge  attached to order',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'currency_code' => array(
+        'description' => 'The currency code for the order.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
       'data' => array(
         'type' => 'blob',
         'not null' => FALSE,
