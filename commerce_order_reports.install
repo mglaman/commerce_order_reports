@@ -1,0 +1,72 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+/*
+ # Thought: Instead of creating new entity, attach field to Orders called Checkout Time versus duplicating data.
+function commerce_order_reports_schema() {
+  $schema = array();
+
+  $schema['commerce_order_reports'] = array(
+    'description' => 'The base table for order reports.',
+    'fields' => array(
+      'order_id' => array(
+        'description' => 'The orders primary indentifier.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'order_number' => array(
+        'description' => 'The order\'s number',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'uid' => array(
+        'description' => 'The {users}.uid that owns this order.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the order\'s report instance was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'data' => array(
+        'type' => 'blob',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data.',
+      ),
+    ),
+    'primary key' => array('order_id'),
+    'unique keys' => array(
+      'order_number' => array('order_number'),
+      'revision_id' => array('revision_id'),
+    ),
+    'indexes' => array(
+      'uid' => array('uid'),
+    ),
+    'foreign keys' => array(
+      'current_revision' => array(
+        'table' => 'commerce_order_revision',
+        'columns'=> array('revision_id' => 'revision_id'),
+      ),
+      'owner' => array(
+        'table' => 'users',
+        'columns' => array('uid' => 'uid'),
+      ),
+    ),
+  );
+}
+*/
+/**
+ * Implements hook_uninstall().
+ */
+function commerce_order_reports_uninstall() {
+
+}
