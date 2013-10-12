@@ -3,8 +3,7 @@
 /**
  * Implements hook_schema().
  */
-/*
- # Thought: Instead of creating new entity, attach field to Orders called Checkout Time versus duplicating data.
+
 function commerce_order_reports_schema() {
   $schema = array();
 
@@ -46,16 +45,11 @@ function commerce_order_reports_schema() {
     'primary key' => array('order_id'),
     'unique keys' => array(
       'order_number' => array('order_number'),
-      'revision_id' => array('revision_id'),
     ),
     'indexes' => array(
       'uid' => array('uid'),
     ),
     'foreign keys' => array(
-      'current_revision' => array(
-        'table' => 'commerce_order_revision',
-        'columns'=> array('revision_id' => 'revision_id'),
-      ),
       'owner' => array(
         'table' => 'users',
         'columns' => array('uid' => 'uid'),
@@ -63,7 +57,7 @@ function commerce_order_reports_schema() {
     ),
   );
 }
-*/
+
 /**
  * Implements hook_uninstall().
  */
