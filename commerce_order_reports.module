@@ -118,7 +118,7 @@ function commerce_order_reports_views_api() {
  */
 function commerce_order_reports_views_pre_render(&$view) {
   if ($view->name == 'daily_report') {
-    drupal_add_css(drupal_get_path('module', 'commerce_order_reports') . '/commerce_order_reports.css');
+    drupal_add_css(drupal_get_path('module', 'commerce_order_reports') . '/theme/commerce_order_reports.css');
     $view->attachment_before = commerce_order_reports_daily_report_header($view);
   }
 }
