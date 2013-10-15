@@ -15,7 +15,7 @@ function commerce_order_reports_default_rules_configuration() {
     "PLUGIN" : "reaction rule",
     "TAGS" : [ "Commerce Order Report" ],
     "REQUIRES" : [ "commerce_order_reports", "commerce_checkout", "entity" ],
-    "ON" : [ "commerce_checkout_complete", "commerce_order_update" ],
+    "ON" : [ "commerce_payment_order_paid_in_full" ],
     "DO" : [
       { "commerce_order_report_add_entry" : { "commerce_order" : [ "commerce_order" ] } }
     ]
