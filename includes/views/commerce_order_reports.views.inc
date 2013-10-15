@@ -153,6 +153,16 @@ function commerce_order_reports_views_data() {
     ),
   );
 
+  $data['commerce_order_reports']['order_report_date'] = array(
+    'title' => t('Order report date'),
+    'help' => t('Field containing the date of the order, with the ability to filter on granularity.'),
+    'real field' => 'created',
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+  );
+
   // Expose the created and changed timestamps.
   $data['commerce_order_reports']['created'] = array(
     'title' => t('Created date'),
@@ -223,15 +233,5 @@ function commerce_order_reports_views_data() {
     ),
   );
 
-/* # @todo: Need to redfine order_total
-  // Define a handler for an area used to summarize a set of line items.
-  $data['commerce_order']['order_total'] = array(
-    'title' => t('Order total'),
-    'help' => t('Displays the order total field formatted with its components list; requires an Order ID argument.'),
-    'area' => array(
-      'handler' => 'commerce_order_handler_area_order_total',
-    ),
-  );
-  */
   return $data;
 }

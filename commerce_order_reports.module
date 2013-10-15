@@ -18,7 +18,6 @@ function commerce_order_reports_entity_info() {
       'controller class' => 'CommerceOrderReportsEntityController',
       'base table' => 'commerce_order_reports',
       'load hook' => 'commerce_order_reports_load',
-      'label callback' => 'commerce_order_reports_label',
       'fieldable' => TRUE,
       'entity keys' => array(
         'id' => 'order_id',
@@ -30,15 +29,15 @@ function commerce_order_reports_entity_info() {
 /**
  * Returns an initialized order object.
  *
+ * @param $order_id
+ *   The id of the order.
+ * @param $order_number
+ *   The order number, @todo: remove as parameter and set in entity controller on save.
  * @param $uid
- *   The uid of the owner of the order.
- * @param $status
- *   Optionally the order status of the new order.
- * @param $type
- *   The type of the order; defaults to the standard 'order' type.
+ *   User id for the order
  *
  * @return
- *   An order object with all default fields initialized.
+ *   An order report object with all default fields initialized.
  */
 function commerce_order_reports_new($order_id, $order_number, $uid = 0) {
   if(!$order_id || !$order_number) return;
@@ -52,33 +51,29 @@ function commerce_order_reports_new($order_id, $order_number, $uid = 0) {
 }
 
 /**
- * Saves an order.
- *
- * @param $order
- *   The full order object to save. If $order->order_id is empty, a new order
- *     will be created.
+ * Saves an order report entity.
  *
  * @return
  *   SAVED_NEW or SAVED_UPDATED depending on the operation performed.
  */
-function commerce_order_reports_save($order) {
-  return entity_get_controller('commerce_order_reports')->save($order);
+function commerce_order_reports_save($order_report) {
+  return entity_get_controller('commerce_order_reports')->save($order_report);
 }
 
 /**
- * Loads an order by ID.
+ * Loads an order report by order ID.
  */
 function commerce_order_reports_load($order_id) {
-  $orders = commerce_order_reports_load_multiple(array($order_id), array());
-  return $orders ? reset($orders) : FALSE;
+  $order_reports = commerce_order_reports_load_multiple(array($order_id), array());
+  return $order_reports ? reset($order_reports) : FALSE;
 }
 
 /**
- * Loads an order by number.
+ * Loads an order report by order number.
  */
 function commerce_order_reports_load_by_number($order_number) {
-  $orders = commerce_order_reports_load_multiple(array(), array('order_number' => $order_number));
-  return $orders ? reset($orders) : FALSE;
+  $order_reports = commerce_order_reports_load_multiple(array(), array('order_number' => $order_number));
+  return $order_reports ? reset($order_reports) : FALSE;
 }
 
 /**
@@ -97,7 +92,7 @@ function commerce_order_reports_load_by_number($order_number) {
  *   Whether to reset the internal order loading cache.
  *
  * @return
- *   An array of order objects indexed by order_id.
+ *   An array of order report objects indexed by order_id.
  */
 function commerce_order_reports_load_multiple($order_ids = array(), $conditions = array(), $reset = FALSE) {
   return entity_load('commerce_order_reports', $order_ids, $conditions, $reset);
@@ -113,16 +108,38 @@ function commerce_order_reports_views_api() {
   );
 }
 
+
+/**
+ *  Implements hook_views_query_alter().
+ *  @todo may have to make custom views handler instead.
+ */
+function commerce_order_reports_views_query_alter(&$view, &$query) {
+  if ($view->name == 'commerce_order_reports_monthly') {
+
+    $field_alias = 'commerce_order_reports_created_granularity';
+    $query->add_field('commerce_order_reports', 'created', 'commerce_order_reports_created_granularity', array());
+
+    //$field_name = views_date_sql_format('Y-m', 'commerce_order_reports.created');
+    $field_name = 'DAY(FROM_UNIXTIME(commerce_order_reports_created_granularity))';
+    $query->add_groupby($field_name);
+    dpm($query);
+  }
+}
+
 /**
  * Implements hook_views_pre_render().
  */
 function commerce_order_reports_views_pre_render(&$view) {
-  if ($view->name == 'daily_report') {
+  if ($view->name == 'commerce_order_reports_daily') {
     drupal_add_css(drupal_get_path('module', 'commerce_order_reports') . '/theme/commerce_order_reports.css');
     $view->attachment_before = commerce_order_reports_daily_report_header($view);
   }
 }
 
+/**
+ * Creates header for the daily report
+ * @todo  look into theme('table')
+ */
 function commerce_order_reports_daily_report_header($view) {
 
   $output = '
@@ -221,7 +238,7 @@ function commerce_order_report_add_entry($commerce_order) {
 /**
  * Gathers tax price components from order and returns unformatted currency amount
  * @param  commerce_order $commerce_order
- * @return int
+ * @return raw currency amount
  */
 function commerce_order_reports_order_tax_total($commerce_order) {
 
@@ -248,8 +265,8 @@ function commerce_order_reports_order_tax_total($commerce_order) {
 /**
  * Cycles through each line item, except shipping, to calculate order total.
  * Allows for recognition of discounts.
- * @param  [type] $commerce_order [description]
- * @return [type]                 [description]
+ * @param  commerce_order $commerce_order
+ * @return raw currency amount
  */
 function commerce_order_reports_order_base_total($commerce_order) {
 
@@ -267,15 +284,19 @@ function commerce_order_reports_order_base_total($commerce_order) {
   foreach($order_line_items as $line_item) {
     //We want to ignore shipping, since we're cataloging that else where.
     if($line_item->type == 'shipping') continue;
-
+    //Total up each line item's cost.
     $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
-
     $order_total = $order_total + $line_item_wrapper->commerce_total->amount->value();
   }
 
   return $order_total;
 }
 
+/**
+ * Cycles through each line item and grabs shipping amount
+ * @param  commerce_order $commerce_order
+ * @return raw currency amount
+ */
 function commerce_order_reports_order_shipping_total($commerce_order) {
 
   if(!is_object($commerce_order)) return;
@@ -293,7 +314,8 @@ function commerce_order_reports_order_shipping_total($commerce_order) {
     //We want to ignore shipping, since we're cataloging that else where.
     if($line_item->type == 'shipping') {
       //@todo: Properly load entity wrapper to get value
-      $order_total = $order_total + $line_item->commerce_unit_price['und'][0]['amount'];
+      $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
+      $order_total = $order_total + $line_item_wrapper->commerce_total->amount->value();
     }
   }
 

@@ -10,7 +10,7 @@
 function commerce_order_reports_views_default_views() {
 
   $view = new view();
-  $view->name = 'daily_report';
+  $view->name = 'commerce_order_reports_daily';
   $view->description = '';
   $view->tag = 'default';
   $view->base_table = 'commerce_order_reports';
@@ -30,7 +30,7 @@ function commerce_order_reports_views_default_views() {
   $handler->display->display_options['exposed_form']['type'] = 'basic';
   $handler->display->display_options['exposed_form']['options']['autosubmit'] = TRUE;
   $handler->display->display_options['pager']['type'] = 'full';
-  $handler->display->display_options['pager']['options']['items_per_page'] = '10';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '25';
   $handler->display->display_options['style_plugin'] = 'table';
   /* Relationship: Commerce Order Reports: Owner */
   $handler->display->display_options['relationships']['uid']['id'] = 'uid';
@@ -47,11 +47,6 @@ function commerce_order_reports_views_default_views() {
   $handler->display->display_options['fields']['created']['label'] = 'Date';
   $handler->display->display_options['fields']['created']['date_format'] = 'custom';
   $handler->display->display_options['fields']['created']['custom_date_format'] = 'm/d/Y';
-  /* Field: Commerce Order Reports: Order ID */
-  $handler->display->display_options['fields']['order_id']['id'] = 'order_id';
-  $handler->display->display_options['fields']['order_id']['table'] = 'commerce_order_reports';
-  $handler->display->display_options['fields']['order_id']['field'] = 'order_id';
-  $handler->display->display_options['fields']['order_id']['exclude'] = TRUE;
   /* Field: Commerce Order Reports: Order number */
   $handler->display->display_options['fields']['order_number']['id'] = 'order_number';
   $handler->display->display_options['fields']['order_number']['table'] = 'commerce_order_reports';
@@ -103,7 +98,7 @@ function commerce_order_reports_views_default_views() {
 
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
-  $handler->display->display_options['path'] = 'admin/commerce/daily-report';
+  $handler->display->display_options['path'] = 'admin/commerce/order-reports/daily';
   $handler->display->display_options['menu']['type'] = 'tab';
   $handler->display->display_options['menu']['title'] = 'Daily Report';
   $handler->display->display_options['menu']['weight'] = '0';
@@ -116,7 +111,7 @@ function commerce_order_reports_views_default_views() {
    */
   if (module_exists('views_data_export')) {
     /* Display: CSV Export */
-    $handler = $view->new_display('views_data_export', 'CSV Export', 'views_data_export_1');
+    $handler = $view->new_display('views_data_export', 'CSV Export', 'commerce_order_reports_daily_csv');
     $handler->display->display_options['pager']['type'] = 'some';
     $handler->display->display_options['pager']['options']['items_per_page'] = '0';
     $handler->display->display_options['pager']['options']['offset'] = '0';
@@ -128,26 +123,106 @@ function commerce_order_reports_views_default_views() {
     $handler->display->display_options['style_options']['replace_newlines'] = 0;
     $handler->display->display_options['style_options']['header'] = 1;
     $handler->display->display_options['style_options']['encoding'] = 'ASCII';
-    $handler->display->display_options['path'] = 'admin/commerce/daily-report/csv';
+    $handler->display->display_options['path'] = 'admin/commerce/order-reports/daily/csv';
     $handler->display->display_options['displays'] = array(
       'page' => 'page',
       'default' => 0,
     );
 
     /* Display: XLS Export */
-    $handler = $view->new_display('views_data_export', 'XLS Export', 'views_data_export_2');
+    $handler = $view->new_display('views_data_export', 'XLS Export', 'commerce_order_reports_daily_xls');
     $handler->display->display_options['pager']['type'] = 'some';
     $handler->display->display_options['pager']['options']['items_per_page'] = '0';
     $handler->display->display_options['pager']['options']['offset'] = '0';
     $handler->display->display_options['style_plugin'] = 'views_data_export_xls';
     $handler->display->display_options['style_options']['provide_file'] = 1;
     $handler->display->display_options['style_options']['parent_sort'] = 0;
-    $handler->display->display_options['path'] = 'admin/commerce/daily-report/xls';
+    $handler->display->display_options['path'] = 'admin/commerce/order-reports/daily/xls';
     $handler->display->display_options['displays'] = array(
       'page' => 'page',
       'default' => 0,
     );
   }
+
+  $views[$view->name] = $view;
+
+$view = new view();
+$view->name = 'commerce_order_reports_monthly';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'commerce_order_reports';
+$view->human_name = 'Monthly Overview';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['title'] = 'Monthly Overview';
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['group_by'] = TRUE;
+$handler->display->display_options['access']['type'] = 'none';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['exposed_form']['options']['autosubmit'] = TRUE;
+$handler->display->display_options['pager']['type'] = 'full';
+$handler->display->display_options['pager']['options']['items_per_page'] = '25';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['pager']['options']['id'] = '0';
+$handler->display->display_options['pager']['options']['quantity'] = '9';
+$handler->display->display_options['style_plugin'] = 'table';
+/* Field: MIN(Commerce Order Reports: Created date) */
+$handler->display->display_options['fields']['created']['id'] = 'created';
+$handler->display->display_options['fields']['created']['table'] = 'commerce_order_reports';
+$handler->display->display_options['fields']['created']['field'] = 'created';
+$handler->display->display_options['fields']['created']['group_type'] = 'min';
+$handler->display->display_options['fields']['created']['date_format'] = 'custom';
+$handler->display->display_options['fields']['created']['custom_date_format'] = 'm/d/Y';
+/* Field: SUM(Commerce Order Reports: Order Total) */
+$handler->display->display_options['fields']['base_total']['id'] = 'base_total';
+$handler->display->display_options['fields']['base_total']['table'] = 'commerce_order_reports';
+$handler->display->display_options['fields']['base_total']['field'] = 'base_total';
+$handler->display->display_options['fields']['base_total']['group_type'] = 'sum';
+/* Field: SUM(Commerce Order Reports: Order Tax) */
+$handler->display->display_options['fields']['tax']['id'] = 'tax';
+$handler->display->display_options['fields']['tax']['table'] = 'commerce_order_reports';
+$handler->display->display_options['fields']['tax']['field'] = 'tax';
+$handler->display->display_options['fields']['tax']['group_type'] = 'sum';
+/* Field: SUM(Commerce Order Reports: Order Shipping) */
+$handler->display->display_options['fields']['shipping']['id'] = 'shipping';
+$handler->display->display_options['fields']['shipping']['table'] = 'commerce_order_reports';
+$handler->display->display_options['fields']['shipping']['field'] = 'shipping';
+$handler->display->display_options['fields']['shipping']['group_type'] = 'sum';
+/* Filter criterion: Date: Date (commerce_order_reports) */
+$handler->display->display_options['filters']['date_filter']['id'] = 'date_filter';
+$handler->display->display_options['filters']['date_filter']['table'] = 'commerce_order_reports';
+$handler->display->display_options['filters']['date_filter']['field'] = 'date_filter';
+$handler->display->display_options['filters']['date_filter']['group'] = 1;
+$handler->display->display_options['filters']['date_filter']['exposed'] = TRUE;
+$handler->display->display_options['filters']['date_filter']['expose']['operator_id'] = 'date_filter_op';
+$handler->display->display_options['filters']['date_filter']['expose']['label'] = 'Month';
+$handler->display->display_options['filters']['date_filter']['expose']['description'] = 'Pick which month to view an overview for';
+$handler->display->display_options['filters']['date_filter']['expose']['operator'] = 'date_filter_op';
+$handler->display->display_options['filters']['date_filter']['expose']['identifier'] = 'date_filter';
+$handler->display->display_options['filters']['date_filter']['expose']['remember_roles'] = array(
+  2 => '2',
+  1 => 0,
+  3 => 0,
+);
+$handler->display->display_options['filters']['date_filter']['granularity'] = 'month';
+$handler->display->display_options['filters']['date_filter']['default_date'] = 'now';
+$handler->display->display_options['filters']['date_filter']['year_range'] = '-3:+0';
+$handler->display->display_options['filters']['date_filter']['date_fields'] = array(
+  'commerce_order_reports.created' => 'commerce_order_reports.created',
+);
+
+/* Display: Page */
+$handler = $view->new_display('page', 'Page', 'page');
+$handler->display->display_options['path'] = 'admin/commerce/order-reports/monthly';
+$handler->display->display_options['menu']['type'] = 'normal';
+$handler->display->display_options['menu']['title'] = 'Monthly Overview';
+$handler->display->display_options['menu']['name'] = 'management';
 
   $views[$view->name] = $view;
 
