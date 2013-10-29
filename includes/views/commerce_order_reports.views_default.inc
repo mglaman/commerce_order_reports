@@ -98,7 +98,7 @@ function commerce_order_reports_views_default_views() {
 
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
-  $handler->display->display_options['path'] = 'admin/commerce/order-reports/daily';
+  $handler->display->display_options['path'] = 'admin/commerce/orders/daily';
   $handler->display->display_options['menu']['type'] = 'tab';
   $handler->display->display_options['menu']['title'] = 'Daily Report';
   $handler->display->display_options['menu']['weight'] = '0';
@@ -219,8 +219,8 @@ $handler->display->display_options['filters']['date_filter']['date_fields'] = ar
 
 /* Display: Page */
 $handler = $view->new_display('page', 'Page', 'page');
-$handler->display->display_options['path'] = 'admin/commerce/order-reports/monthly';
-$handler->display->display_options['menu']['type'] = 'normal';
+$handler->display->display_options['path'] = 'admin/commerce/orders/monthly';
+$handler->display->display_options['menu']['type'] = 'tab';
 $handler->display->display_options['menu']['title'] = 'Monthly Overview';
 $handler->display->display_options['menu']['name'] = 'management';
 

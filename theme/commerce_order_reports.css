@@ -9,7 +9,7 @@
   margin-left: 15px;
 }
 .commerce-order-reports #edit-date-filter-wrapper .views-widget .date-padding input {
-  background: white url("theme/images/calendar.png") no-repeat 95% center;
+  background: white url("images/calendar.png") no-repeat 95% center;
 }
 .commerce-order-reports #edit-date-filter-wrapper .description {
   clear: both;
